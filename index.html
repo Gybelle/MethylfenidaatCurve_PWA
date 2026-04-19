@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Rilatine">
+  <meta name="theme-color" content="#F5EFE8">
+  <title>Rilatine Curve</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #FBF7F2;
+      --card-bg: #F5EFE8;
+      --border: #d3c8b8;
+      --med: #9cb8a0;
+      --med-peak: #4a7a50;
+      --rebound: #e7acaa;
+      --rebound-peak: #c96a68;
+      --axis: #8a8078;
+      --label: #7a7268;
+      --value: #3a3530;
+      --baseline: rgba(180,168,154,0.5);
+      --now: #d17b3a;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--value);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      padding: max(env(safe-area-inset-top), 12px) 14px max(env(safe-area-inset-bottom), 20px);
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 4px 0 2px;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--label);
+      font-size: 13px;
+      margin: 0 0 16px;
+    }
+
+    /* ───── Input section ───── */
+    .input-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: var(--label);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0 0 6px;
+      font-weight: 600;
+    }
+
+    .dose-toggle {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .dose-toggle button {
+      appearance: none;
+      flex: 1;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--value);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 10px 12px;
+      border-radius: 10px;
+      min-height: 44px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.05s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .dose-toggle button:active { transform: scale(0.97); }
+    .dose-toggle button.active {
+      background: var(--med-peak);
+      color: #fff;
+      border-color: var(--med-peak);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+      flex-wrap: wrap;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--value);
+      font-size: 16px;
+      font-weight: 500;
+      padding: 12px 16px;
+      border-radius: 10px;
+      min-height: 48px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.05s ease, background 0.15s ease;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: var(--med-peak);
+      color: #fff;
+      border-color: var(--med-peak);
+      flex: 1 1 auto;
+    }
+    .btn-secondary { background: #fff; flex: 0 1 auto; }
+
+    .time-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+      margin-top: 8px;
+    }
+    input[type="time"] {
+      flex: 1 1 auto;
+      font-size: 17px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--value);
+      font-family: inherit;
+      min-height: 48px;
+    }
+
+    /* ───── Doses list ───── */
+    .doses {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .dose-empty {
+      color: var(--label);
+      font-size: 13px;
+      padding: 4px 2px;
+    }
+    .dose-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    .dose-swatch {
+      width: 8px;
+      height: 28px;
+      border-radius: 2px;
+      background: var(--med-peak);
+      flex-shrink: 0;
+    }
+    .dose-swatch.d10 { background: #b8d1bb; }
+    .dose-body { flex: 1 1 auto; min-width: 0; }
+    .dose-time {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--value);
+    }
+    .dose-meta {
+      font-size: 11px;
+      color: var(--label);
+      margin-top: 2px;
+    }
+    .dose-del {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--label);
+      font-size: 20px;
+      line-height: 1;
+      padding: 6px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .dose-del:active { background: #f0e7da; }
+
+    .clear-all {
+      margin-top: 8px;
+      text-align: right;
+    }
+    .btn-ghost {
+      appearance: none;
+      background: transparent;
+      border: none;
+      color: var(--label);
+      font-size: 13px;
+      padding: 6px 4px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .btn-ghost:active { color: var(--value); }
+
+    /* ───── Phase bar ───── */
+    .phase-bar {
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+    }
+    .phase-bar > div { height: 100%; }
+
+    /* ───── Chart ───── */
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 8px 6px;
+      margin-bottom: 12px;
+    }
+    .chart-wrapper {
+      position: relative;
+      height: 340px;
+    }
+    @media (max-width: 380px) {
+      .chart-wrapper { height: 300px; }
+    }
+
+    /* ───── Now readout ───── */
+    .now-card {
+      background: #fff;
+      border: 1px solid var(--now);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .now-card .now-label {
+      font-size: 11px;
+      color: var(--now);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+    .now-card .now-value {
+      font-size: 15px;
+      color: var(--value);
+      font-weight: 600;
+    }
+    .now-card .now-phase {
+      font-size: 13px;
+      color: var(--label);
+      text-align: right;
+    }
+
+    /* ───── Legend / disclaimer ───── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      margin: 4px 4px 10px;
+      font-size: 12px;
+      color: var(--label);
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .swatch { display: inline-block; width: 18px; height: 3px; border-radius: 2px; }
+    .swatch.dashed {
+      background: repeating-linear-gradient(to right, var(--rebound) 0, var(--rebound) 4px, transparent 4px, transparent 7px);
+      height: 3px;
+    }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+
+    .disclaimer {
+      font-size: 11px;
+      color: var(--label);
+      padding: 0 4px;
+      margin: 4px 0 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Rilatine Curve</h1>
+  <p class="subtitle">Werkingscurve van je methylfenidaat IR, inclusief rebound. Meerdere innames per dag worden opgeteld.</p>
+</header>
+
+<div class="input-card">
+  <div class="field-label">Dosis voor volgende inname</div>
+  <div class="dose-toggle" id="dose-toggle">
+    <button data-mg="10">10 mg</button>
+    <button data-mg="20" class="active">20 mg</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" id="take-now-btn">Neem nu</button>
+  </div>
+
+  <div class="time-row">
+    <input type="time" id="time-input" step="60">
+    <button class="btn btn-secondary" id="set-time-btn">Voeg toe</button>
+  </div>
+
+  <div class="doses" id="doses"></div>
+
+  <div class="clear-all" id="clear-all-wrap" style="display:none">
+    <button class="btn-ghost" id="clear-all-btn">Alles wissen</button>
+  </div>
+</div>
+
+<div id="content" style="display:none">
+
+  <div class="now-card" id="now-card">
+    <div>
+      <div class="now-label">Nu · <span id="now-time">—</span></div>
+      <div class="now-value" id="now-value">—</div>
+    </div>
+    <div class="now-phase" id="now-phase"></div>
+  </div>
+
+  <div class="phase-bar" id="phase-bar"></div>
+
+  <div class="chart-card">
+    <div class="chart-wrapper">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="swatch" style="background:var(--med)"></span>Medicatiewerking (gecombineerd)</div>
+    <div class="legend-item"><span class="swatch dashed"></span>Rebound</div>
+    <div class="legend-item"><span class="dot" style="background:var(--med-peak)"></span>Inname</div>
+    <div class="legend-item"><span class="swatch" style="background:var(--now)"></span>Nu</div>
+  </div>
+
+  <p class="disclaimer">Indicatieve curve op basis van gemiddelde farmacokinetiek van methylfenidaat IR. Amplitude schaalt lineair met de dosis (10 mg ≈ halve hoogte van 20 mg). Individuele variatie is mogelijk.</p>
+</div>
+
+<script>
+/* ────────────────────────────────────────────────────────────
+   Rilatine PWA · medicatie-curve (multi-dose)
+   ──────────────────────────────────────────────────────────── */
+
+const STORAGE_KEY = 'rilatine_state_v2';
+const LEGACY_KEY  = 'rilatine_state_v1';
+const REFERENCE_MG = 20; // curve-hoogte 1.0 komt overeen met deze dosis
+
+// Farmacologisch model
+const K_ABS = 2.8;
+const K_ELIM = 0.55;
+const REBOUND_START = 4.75;
+const REBOUND_PEAK  = 5.25;
+const REBOUND_END   = 7.25;
+const REBOUND_AMP   = 0.42;
+const REBOUND_WIDTH = 0.65;
+
+// ── utils ────────────────────────────────────────────────────
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function nowDecimalHours() {
+  const d = new Date();
+  return d.getHours() + d.getMinutes()/60 + d.getSeconds()/3600;
+}
+function decToLabel(h) {
+  let hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+  if (mm === 60) { hh += 1; mm = 0; }
+  hh = ((hh % 24) + 24) % 24;
+  return `${hh}u${String(mm).padStart(2,'0')}`;
+}
+function decToClock(h) {
+  let hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+  if (mm === 60) { hh += 1; mm = 0; }
+  hh = ((hh % 24) + 24) % 24;
+  return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+}
+function parseTimeInput(val) {
+  if (!val || !/^\d{1,2}:\d{2}$/.test(val)) return null;
+  const [h,m] = val.split(':').map(Number);
+  if (h<0||h>23||m<0||m>59) return null;
+  return h + m/60;
+}
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
+
+// ── state ────────────────────────────────────────────────────
+function migrateLegacy() {
+  // If old v1 entry exists and is from today, migrate to new schema
+  const raw = localStorage.getItem(LEGACY_KEY);
+  if (!raw) return;
+  try {
+    const s = JSON.parse(raw);
+    if (s && s.date === todayStr() && typeof s.taken === 'number') {
+      saveState({
+        date: todayStr(),
+        doses: [{ id: uid(), time: s.taken, mg: 20 }],
+        selectedMg: 20,
+      });
+    }
+  } catch (e) { /* ignore */ }
+  localStorage.removeItem(LEGACY_KEY);
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (s.date !== todayStr()) return null; // vervalt bij nieuwe dag
+    if (!Array.isArray(s.doses)) return null;
+    return s;
+  } catch (e) { return null; }
+}
+function saveState(s) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+}
+function clearState() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+function getOrInitState() {
+  let s = loadState();
+  if (!s) {
+    s = { date: todayStr(), doses: [], selectedMg: 20 };
+    saveState(s);
+  }
+  return s;
+}
+function addDose(time, mg) {
+  const s = getOrInitState();
+  s.doses.push({ id: uid(), time, mg });
+  s.doses.sort((a,b) => a.time - b.time);
+  s.selectedMg = mg; // remember last selection
+  saveState(s);
+  return s;
+}
+function removeDose(id) {
+  const s = loadState();
+  if (!s) return null;
+  s.doses = s.doses.filter(d => d.id !== id);
+  if (s.doses.length === 0) {
+    clearState();
+    return null;
+  }
+  saveState(s);
+  return s;
+}
+function setSelectedMg(mg) {
+  const s = getOrInitState();
+  s.selectedMg = mg;
+  saveState(s);
+}
+
+// ── model ────────────────────────────────────────────────────
+function rawMed(dt) {
+  if (dt <= 0) return 0;
+  return Math.max(0, Math.exp(-K_ELIM * dt) - Math.exp(-K_ABS * dt));
+}
+const PEAK_DT  = Math.log(K_ABS / K_ELIM) / (K_ABS - K_ELIM); // ≈ 0.72u
+const PEAK_RAW = rawMed(PEAK_DT);
+
+function medValue(dt) {
+  if (dt <= 0) return 0;
+  return rawMed(dt) / PEAK_RAW; // piek = 1 voor referentie-dosis
+}
+function _gauss(dt) {
+  const x = (dt - REBOUND_PEAK) / REBOUND_WIDTH;
+  return -REBOUND_AMP * Math.exp(-x*x);
+}
+const _GAUSS_START = _gauss(REBOUND_START);
+const _GAUSS_END   = _gauss(REBOUND_END);
+function _reboundRaw(dt) {
+  if (dt < REBOUND_START || dt > REBOUND_END) return 0;
+  const t = (dt - REBOUND_START) / (REBOUND_END - REBOUND_START);
+  const boundary = _GAUSS_START * (1 - t) + _GAUSS_END * t;
+  return _gauss(dt) - boundary;
+}
+const REBOUND_TARGET_DEPTH = 0.48;
+let _rawDepth = 0;
+for (let t = REBOUND_START; t <= REBOUND_END; t += 0.01) {
+  const v = Math.abs(_reboundRaw(t));
+  if (v > _rawDepth) _rawDepth = v;
+}
+const REBOUND_SCALE = _rawDepth > 0 ? REBOUND_TARGET_DEPTH / _rawDepth : 1;
+function reboundValue(dt) {
+  return _reboundRaw(dt) * REBOUND_SCALE;
+}
+
+// Contribution of a single dose at absolute time `t`
+function medAt(dose, t) {
+  const scale = dose.mg / REFERENCE_MG;
+  return medValue(t - dose.time) * scale;
+}
+function reboundAt(dose, t) {
+  const scale = dose.mg / REFERENCE_MG;
+  return reboundValue(t - dose.time) * scale;
+}
+function combinedMed(doses, t) {
+  let s = 0;
+  for (const d of doses) s += medAt(d, t);
+  return s;
+}
+function combinedRebound(doses, t) {
+  let s = 0;
+  for (const d of doses) s += reboundAt(d, t);
+  return s;
+}
+function combinedTotal(doses, t) {
+  return combinedMed(doses, t) + combinedRebound(doses, t);
+}
+
+// Semantic phase based on combined curve & max raw med amplitude (not rebound)
+function phaseFromLevel(med, rb) {
+  if (med >= 0.85) return 'Piek';
+  if (med >= 0.55) return 'Hoog';
+  if (med >= 0.25) return 'Matig';
+  if (med >= 0.05) return 'Laag';
+  if (rb <= -0.3)  return 'Rebound dieptepunt';
+  if (rb <= -0.05) return 'Rebound';
+  return 'Basisniveau';
+}
+function textualPhase(doses, t) {
+  if (!doses.length) return { name: 'Nog geen inname', detail: '' };
+  const med = combinedMed(doses, t);
+  const rb  = combinedRebound(doses, t);
+  const name = phaseFromLevel(med, rb);
+  // Detail: time since most-recent PAST dose
+  const past = doses.filter(d => d.time <= t);
+  let detail = '';
+  if (past.length) {
+    const last = past[past.length - 1];
+    const dt = t - last.time;
+    detail = `+${Math.floor(dt)}u${String(Math.round((dt - Math.floor(dt))*60)).padStart(2,'0')} na laatste inname`;
+  } else {
+    detail = 'Inname nog niet gestart';
+  }
+  return { name, detail };
+}
+
+// ── rendering ────────────────────────────────────────────────
+let chart = null;
+
+function render() {
+  const state = loadState();
+  const content = document.getElementById('content');
+  const clearWrap = document.getElementById('clear-all-wrap');
+
+  renderDoseToggle(state);
+  renderDosesList(state);
+
+  const hasDoses = state && state.doses && state.doses.length > 0;
+  content.style.display = hasDoses ? 'block' : 'none';
+  clearWrap.style.display = hasDoses ? '' : 'none';
+  if (!hasDoses) return;
+
+  renderPhaseBar(state);
+  renderNow(state);
+  renderChart(state);
+}
+
+function renderDoseToggle(state) {
+  const selected = (state && state.selectedMg) || 20;
+  document.querySelectorAll('#dose-toggle button').forEach(btn => {
+    const mg = Number(btn.dataset.mg);
+    btn.classList.toggle('active', mg === selected);
+  });
+}
+
+function renderDosesList(state) {
+  const wrap = document.getElementById('doses');
+  if (!state || !state.doses.length) {
+    wrap.innerHTML = '<div class="dose-empty">Nog geen inname vandaag.</div>';
+    return;
+  }
+  wrap.innerHTML = state.doses.map(d => {
+    const piek  = decToClock(d.time + PEAK_DT);
+    const klaar = decToClock(d.time + 5);
+    const reboundA = decToClock(d.time + REBOUND_START);
+    const reboundB = decToClock(d.time + REBOUND_END);
+    return `
+      <div class="dose-row">
+        <span class="dose-swatch ${d.mg === 10 ? 'd10' : ''}"></span>
+        <div class="dose-body">
+          <div class="dose-time">${decToClock(d.time)} · ${d.mg} mg</div>
+          <div class="dose-meta">Piek ${piek} · klaar ${klaar} · rebound ${reboundA}–${reboundB}</div>
+        </div>
+        <button class="dose-del" aria-label="Verwijder" data-id="${d.id}">×</button>
+      </div>`;
+  }).join('');
+}
+
+function renderPhaseBar(state) {
+  // Segmenten over 24u, per kwartier, kleur op basis van gecombineerd niveau
+  const bar = document.getElementById('phase-bar');
+  const doses = state.doses;
+  const step = 0.25;
+  const html = [];
+  for (let t = 0; t < 24; t += step) {
+    const mid = t + step/2;
+    const med = combinedMed(doses, mid);
+    const rb  = combinedRebound(doses, mid);
+    let color = 'var(--card-bg)';
+    if (med >= 0.55) color = 'var(--med)';
+    else if (med >= 0.25) color = '#bccfbf';
+    else if (med >= 0.05) color = '#d3e0ce';
+    else if (rb <= -0.05) color = 'var(--rebound)';
+    html.push(`<div style="flex:1;background:${color}"></div>`);
+  }
+  bar.innerHTML = html.join('');
+}
+
+function renderNow(state) {
+  const now = nowDecimalHours();
+  const { name, detail } = textualPhase(state.doses, now);
+  document.getElementById('now-time').textContent = decToClock(now);
+  document.getElementById('now-value').textContent = name;
+  document.getElementById('now-phase').textContent = detail;
+}
+
+// ── Chart.js plugins ─────────────────────────────────────────
+const innameMultiPlugin = {
+  id: 'innameMultiPlugin',
+  afterDraw(chart, args, opts) {
+    const { innames } = opts; // array of { x, label }
+    if (!innames || !innames.length) return;
+    const { ctx, chartArea, scales } = chart;
+    ctx.save();
+    ctx.strokeStyle = '#8a8078';
+    ctx.setLineDash([4,4]);
+    ctx.lineWidth = 1;
+    ctx.font = '11px -apple-system, system-ui, sans-serif';
+    ctx.fillStyle = '#7a7268';
+    for (const n of innames) {
+      const x = scales.x.getPixelForValue(n.x);
+      if (x < chartArea.left || x > chartArea.right) continue;
+      ctx.beginPath();
+      ctx.moveTo(x, chartArea.top);
+      ctx.lineTo(x, chartArea.bottom);
+      ctx.stroke();
+      ctx.fillText(n.label, x + 4, chartArea.top + 12);
+    }
+    ctx.restore();
+  }
+};
+const baselinePlugin = {
+  id: 'baselinePlugin',
+  afterDraw(chart) {
+    const { ctx, chartArea, scales } = chart;
+    const y = scales.y.getPixelForValue(0);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(180,168,154,0.5)';
+    ctx.setLineDash([2,3]);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(chartArea.left, y);
+    ctx.lineTo(chartArea.right, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#8a8078';
+    ctx.font = '10px -apple-system, system-ui, sans-serif';
+    ctx.fillText('basisniveau', chartArea.left + 4, y - 3);
+    ctx.restore();
+  }
+};
+const nowPlugin = {
+  id: 'nowPlugin',
+  afterDraw(chart, args, opts) {
+    const { nowX, nowY, nowClock } = opts;
+    if (nowX == null) return;
+    const { ctx, chartArea, scales } = chart;
+    const x = scales.x.getPixelForValue(nowX);
+    if (x < chartArea.left || x > chartArea.right) return;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(209,123,58,0.08)';
+    ctx.fillRect(chartArea.left, chartArea.top, x - chartArea.left, chartArea.bottom - chartArea.top);
+    ctx.restore();
+
+    ctx.save();
+    ctx.strokeStyle = '#d17b3a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, chartArea.top);
+    ctx.lineTo(x, chartArea.bottom);
+    ctx.stroke();
+
+    const label = 'Nu · ' + (nowClock || '');
+    ctx.font = '600 11px -apple-system, system-ui, sans-serif';
+    const tw = ctx.measureText(label).width;
+    const pad = 6, boxH = 18, boxW = tw + pad*2;
+    let boxX = x - boxW/2;
+    if (boxX < chartArea.left + 2) boxX = chartArea.left + 2;
+    if (boxX + boxW > chartArea.right - 2) boxX = chartArea.right - 2 - boxW;
+    const boxY = chartArea.top + 2;
+    ctx.fillStyle = '#d17b3a';
+    roundRect(ctx, boxX, boxY, boxW, boxH, 6);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, boxX + pad, boxY + boxH/2);
+
+    if (nowY != null) {
+      const y = scales.y.getPixelForValue(nowY);
+      if (y >= chartArea.top && y <= chartArea.bottom) {
+        ctx.fillStyle = '#d17b3a';
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, 5.5, 0, Math.PI*2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+};
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y,   x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x,   y+h, r);
+  ctx.arcTo(x,   y+h, x,   y,   r);
+  ctx.arcTo(x,   y,   x+w, y,   r);
+  ctx.closePath();
+}
+
+function renderChart(state) {
+  const doses = state.doses;
+
+  // Window: 2h before first dose → max(9h after last dose, now+1)
+  const firstT = Math.min(...doses.map(d => d.time));
+  const lastT  = Math.max(...doses.map(d => d.time));
+  const now    = nowDecimalHours();
+  const start  = Math.min(firstT - 2, now - 0.25);
+  const end    = Math.max(lastT + 9, now + 0.25);
+
+  const step = 0.25;
+  const medPoints = [];
+  const rbPoints  = [];
+  let yMaxSeen = 1.0;
+  let yMinSeen = 0;
+
+  for (let t = start; t <= end + 1e-6; t += step) {
+    const xRel = t - start;
+    const med  = combinedMed(doses, t);
+    const rb   = combinedRebound(doses, t);
+    medPoints.push({ x: xRel, y: med });
+    // rebound: null outside any rebound window, force 0 at boundaries
+    let anyRb = false;
+    for (const d of doses) {
+      const dt = t - d.time;
+      if (dt >= REBOUND_START && dt <= REBOUND_END) { anyRb = true; break; }
+    }
+    rbPoints.push({ x: xRel, y: anyRb ? rb : null });
+    if (med > yMaxSeen) yMaxSeen = med;
+    if (rb  < yMinSeen) yMinSeen = rb;
+  }
+
+  // Guarantee boundary zeros for rebound segments (insert extra zero just before/after each dose's window when out of data grid)
+  for (const d of doses) {
+    for (const edge of [REBOUND_START, REBOUND_END]) {
+      const tEdge = d.time + edge;
+      if (tEdge < start || tEdge > end) continue;
+      const xRel = tEdge - start;
+      // Insert if not already there (approx)
+      const exists = rbPoints.some(p => Math.abs(p.x - xRel) < 1e-3);
+      if (!exists) rbPoints.push({ x: xRel, y: 0 });
+    }
+  }
+  rbPoints.sort((a,b) => a.x - b.x);
+
+  const yMax = Math.max(1.22, yMaxSeen + 0.15);
+  const yMin = Math.min(-0.62, yMinSeen - 0.14);
+
+  // Now marker
+  let nowX = null, nowY = null;
+  if (now >= start && now <= end) {
+    nowX = now - start;
+    nowY = combinedTotal(doses, now);
+  }
+
+  // Inname markers
+  const innames = doses
+    .filter(d => d.time >= start && d.time <= end)
+    .map(d => ({ x: d.time - start, label: `${d.mg}mg` }));
+
+  const ctx = document.getElementById('chart').getContext('2d');
+  if (chart) chart.destroy();
+
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: 'Medicatiewerking',
+          data: medPoints,
+          borderColor: '#9cb8a0',
+          backgroundColor: 'rgba(156,184,160,0.18)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+        },
+        {
+          label: 'Rebound',
+          data: rbPoints,
+          borderColor: '#e7acaa',
+          backgroundColor: 'rgba(231,172,170,0.22)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2,
+          borderDash: [6,3],
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          spanGaps: false,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      interaction: { mode: 'nearest', axis: 'x', intersect: false },
+      scales: {
+        x: {
+          type: 'linear',
+          min: 0,
+          max: (end - start),
+          ticks: {
+            color: '#8a8078',
+            font: { size: 10 },
+            stepSize: 1,
+            callback: (v) => {
+              const t = start + v;
+              const hh = ((Math.round(t) % 24) + 24) % 24;
+              return `${hh}u00`;
+            }
+          },
+          grid: { color: 'rgba(211,200,184,0.35)' }
+        },
+        y: {
+          min: yMin,
+          max: yMax,
+          ticks: {
+            color: '#8a8078',
+            font: { size: 10 },
+            stepSize: 0.25,
+            callback: (v) => {
+              if (Math.abs(v - 1) < 0.05) return 'Piek';
+              if (Math.abs(v - 0.75) < 0.05) return 'Hoog';
+              if (Math.abs(v - 0.5) < 0.05) return 'Matig';
+              if (Math.abs(v - 0.25) < 0.05) return 'Laag';
+              if (Math.abs(v - 0) < 0.02) return 'Basis';
+              if (Math.abs(v - (-0.25)) < 0.05) return 'Rebound';
+              return '';
+            }
+          },
+          grid: { color: 'rgba(211,200,184,0.35)' }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#3a3530',
+          titleColor: '#fff',
+          bodyColor: '#eee',
+          padding: 10,
+          displayColors: false,
+          callbacks: {
+            title: (items) => {
+              if (!items.length) return '';
+              const x = items[0].parsed.x;
+              const t = start + x;
+              return decToLabel(((t%24)+24)%24);
+            },
+            label: (item) => {
+              const x = item.parsed.x;
+              const t = start + x;
+              const v = item.parsed.y;
+              if (v == null) return null;
+              const ds = item.dataset.label;
+              if (ds === 'Medicatiewerking') {
+                const med = combinedMed(doses, t);
+                const rb  = combinedRebound(doses, t);
+                return `${ds}: ${phaseFromLevel(med, rb)}`;
+              }
+              return `${ds}: ${v <= -0.3 ? 'Dieptepunt' : 'Rebound'}`;
+            }
+          }
+        },
+        innameMultiPlugin: { innames },
+        nowPlugin: {
+          nowX, nowY,
+          nowClock: nowX != null ? decToClock(now) : null
+        }
+      }
+    },
+    plugins: [innameMultiPlugin, baselinePlugin, nowPlugin]
+  });
+}
+
+// ── events ───────────────────────────────────────────────────
+function getSelectedMg() {
+  const active = document.querySelector('#dose-toggle button.active');
+  return active ? Number(active.dataset.mg) : 20;
+}
+
+document.getElementById('dose-toggle').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-mg]');
+  if (!btn) return;
+  document.querySelectorAll('#dose-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  setSelectedMg(Number(btn.dataset.mg));
+});
+
+document.getElementById('take-now-btn').addEventListener('click', () => {
+  const now = nowDecimalHours();
+  addDose(Math.round(now * 60) / 60, getSelectedMg());
+  render();
+});
+
+document.getElementById('set-time-btn').addEventListener('click', () => {
+  const val = document.getElementById('time-input').value;
+  const parsed = parseTimeInput(val);
+  if (parsed == null) return;
+  addDose(parsed, getSelectedMg());
+  render();
+});
+
+document.getElementById('time-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('set-time-btn').click();
+});
+
+document.getElementById('doses').addEventListener('click', (e) => {
+  const btn = e.target.closest('.dose-del');
+  if (!btn) return;
+  removeDose(btn.dataset.id);
+  render();
+});
+
+document.getElementById('clear-all-btn').addEventListener('click', () => {
+  if (confirm('Alle innames van vandaag wissen?')) {
+    clearState();
+    render();
+  }
+});
+
+// Pre-fill input with current time for convenience
+(function () {
+  const d = new Date();
+  const v = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('time-input').value = v;
+})();
+
+// Init
+migrateLegacy();
+render();
+
+setInterval(render, 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+
+// Service worker (offline support after first load)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
