@@ -2,7 +2,7 @@
   "name": "Rilatine Curve",
   "short_name": "Rilatine",
   "description": "A simple progressive web app that shows the effect curve of your Ritalin (methylphenidate IR), including the rebound.",
-  "lang": "nl",
+  "lang": "eng",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
