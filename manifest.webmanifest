@@ -1,7 +1,7 @@
 {
   "name": "Rilatine Curve",
   "short_name": "Rilatine",
-  "description": "Volg de werkingscurve van je Rilatine (methylfenidaat IR) doorheen de dag.",
+  "description": "A simple progressive web app that shows the effect curve of your Ritalin (methylphenidate IR), including the rebound.",
   "lang": "nl",
   "start_url": ".",
   "scope": ".",
