@@ -288,6 +288,42 @@
       padding: 0 4px;
       margin: 4px 0 8px;
     }
+
+    /* ───── Rules card ───── */
+    .rules-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .rules-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--value);
+      margin-bottom: 10px;
+    }
+    .rules-section {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--label);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 10px 0 4px;
+    }
+    .rules-section:first-of-type { margin-top: 0; }
+    .rules-list {
+      margin: 0;
+      padding-left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .rules-list li {
+      font-size: 12px;
+      color: var(--value);
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -304,13 +340,11 @@
     <button data-mg="20" class="active">20 mg</button>
   </div>
 
-  <div class="btn-row">
-    <button class="btn btn-primary" id="take-now-btn">Take now</button>
-  </div>
-
   <div class="time-row">
     <input type="time" id="time-input" step="60">
     <button class="btn btn-secondary" id="set-time-btn">Add</button>
+    <span style="align-self:center;color:var(--label);font-size:12px;flex-shrink:0">or</span>
+    <button class="btn btn-primary" id="take-now-btn">Take now</button>
   </div>
 
   <div class="doses" id="doses"></div>
@@ -344,6 +378,28 @@
   </div>
 
   <p class="disclaimer">Indicative curve based on average pharmacokinetics of methylphenidate IR. Amplitude scales linearly with the dose (10 mg ≈ half the height of 20 mg). Individual variation is possible.</p>
+
+  <div class="rules-card">
+    <div class="rules-title">How methylphenidate IR works</div>
+    <div class="rules-section">Effect</div>
+    <ul class="rules-list">
+      <li>Peak effect ~43 min after intake</li>
+      <li>Effect mostly worn off after ~5 h (~done line) — a gradual tail remains</li>
+      <li>10 mg produces roughly half the effect of 20 mg</li>
+    </ul>
+    <div class="rules-section">Rebound</div>
+    <ul class="rules-list">
+      <li>Rebound dip starts ~4 h 45 min after intake, peaks ~5 h 15 min, ends ~7 h 15 min</li>
+      <li>Rebound is a compensatory drop below baseline as the brain readjusts</li>
+    </ul>
+    <div class="rules-section">Taking a second dose</div>
+    <ul class="rules-list">
+      <li>The second dose extends and raises the combined effect curve</li>
+      <li>The rebound of the first dose is suppressed — as long as the second dose keeps the combined effect above ~5% of peak, no rebound dip occurs</li>
+      <li>The eventual rebound (of the last dose) is more intense: the brain was exposed to a higher combined peak, so the compensatory drop is proportionally deeper</li>
+      <li>The later the second dose, the less amplification — because the first dose has already worn off more by then</li>
+    </ul>
+  </div>
 </div>
 
 <script>
@@ -486,16 +542,25 @@ for (let t = REBOUND_START; t <= REBOUND_END; t += 0.01) {
 }
 const REBOUND_SCALE = _rawDepth > 0 ? REBOUND_TARGET_DEPTH / _rawDepth : 1;
 function reboundValue(dt) {
-  return _reboundRaw(dt) * REBOUND_SCALE;
+  return Math.min(0, _reboundRaw(dt) * REBOUND_SCALE);
 }
 
 function medAt(dose, t) {
   const scale = dose.mg / REFERENCE_MG;
   return medValue(t - dose.time) * scale;
 }
-function reboundAt(dose, t) {
+function reboundAt(dose, allDoses, t) {
   const scale = dose.mg / REFERENCE_MG;
-  return reboundValue(t - dose.time) * scale;
+  const rb = reboundValue(t - dose.time) * scale;
+  if (rb >= 0) return 0;
+  // Suppress rebound while other doses still have detectable effect
+  const otherMed = allDoses.reduce((s, d) => d.id !== dose.id ? s + medAt(d, t) : s, 0);
+  if (otherMed > 0.05) return 0;
+  // Amplify rebound based on combined peak exposure during this dose's active window
+  const peakTime = dose.time + PEAK_DT;
+  const combinedPeak = combinedMed(allDoses, peakTime);
+  const boost = Math.max(1, combinedPeak / scale);
+  return rb * boost;
 }
 function combinedMed(doses, t) {
   let s = 0;
@@ -504,7 +569,7 @@ function combinedMed(doses, t) {
 }
 function combinedRebound(doses, t) {
   let s = 0;
-  for (const d of doses) s += reboundAt(d, t);
+  for (const d of doses) s += reboundAt(d, doses, t);
   return s;
 }
 function combinedTotal(doses, t) {
@@ -600,25 +665,46 @@ function renderNow(state) {
 const innameMultiPlugin = {
   id: 'innameMultiPlugin',
   afterDraw(chart, args, opts) {
-    const { innames } = opts;
-    if (!innames || !innames.length) return;
+    const { innames, endlines } = opts;
     const { ctx, chartArea, scales } = chart;
-    ctx.save();
-    ctx.strokeStyle = '#8a8078';
-    ctx.setLineDash([4,4]);
-    ctx.lineWidth = 1;
-    ctx.font = '11px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#7a7268';
-    for (const n of innames) {
-      const x = scales.x.getPixelForValue(n.x);
-      if (x < chartArea.left || x > chartArea.right) continue;
-      ctx.beginPath();
-      ctx.moveTo(x, chartArea.top);
-      ctx.lineTo(x, chartArea.bottom);
-      ctx.stroke();
-      ctx.fillText(n.label, x + 4, chartArea.top + 12);
+
+    if (innames && innames.length) {
+      ctx.save();
+      ctx.strokeStyle = '#8a8078';
+      ctx.setLineDash([4,4]);
+      ctx.lineWidth = 1;
+      ctx.font = '11px -apple-system, system-ui, sans-serif';
+      ctx.fillStyle = '#7a7268';
+      for (const n of innames) {
+        const x = scales.x.getPixelForValue(n.x);
+        if (x < chartArea.left || x > chartArea.right) continue;
+        ctx.beginPath();
+        ctx.moveTo(x, chartArea.top);
+        ctx.lineTo(x, chartArea.bottom);
+        ctx.stroke();
+        ctx.fillText(n.label, x + 4, chartArea.top + 12);
+      }
+      ctx.restore();
     }
-    ctx.restore();
+
+    if (endlines && endlines.length) {
+      ctx.save();
+      ctx.strokeStyle = '#9cb8a0';
+      ctx.setLineDash([4,4]);
+      ctx.lineWidth = 1;
+      ctx.font = '11px -apple-system, system-ui, sans-serif';
+      ctx.fillStyle = '#4a7a50';
+      for (const n of endlines) {
+        const x = scales.x.getPixelForValue(n.x);
+        if (x < chartArea.left || x > chartArea.right) continue;
+        ctx.beginPath();
+        ctx.moveTo(x, chartArea.top);
+        ctx.lineTo(x, chartArea.bottom);
+        ctx.stroke();
+        ctx.fillText(n.label, x + 4, chartArea.top + 26);
+      }
+      ctx.restore();
+    }
   }
 };
 const baselinePlugin = {
@@ -755,8 +841,12 @@ function renderChart(state) {
   }
 
   const innames = doses
-    .filter(d => d.time >= start && d.time <= end)
-    .map(d => ({ x: d.time - start, label: `${d.mg}mg` }));
+    .map((d, i) => ({ x: d.time - start, label: `${d.mg}mg [${i+1}]` }))
+    .filter(n => n.x >= 0 && n.x <= end - start);
+
+  const endlines = doses
+    .map((d, i) => ({ x: d.time + 5 - start, label: `~done [${i+1}]` }))
+    .filter(n => n.x >= 0 && n.x <= end - start);
 
   const ctx = document.getElementById('chart').getContext('2d');
   if (chart) chart.destroy();
@@ -782,7 +872,7 @@ function renderChart(state) {
           borderColor: '#e7acaa',
           backgroundColor: 'rgba(231,172,170,0.22)',
           fill: true,
-          tension: 0.35,
+          tension: 0,
           borderWidth: 2,
           borderDash: [6,3],
           pointRadius: 0,
@@ -863,7 +953,7 @@ function renderChart(state) {
             }
           }
         },
-        innameMultiPlugin: { innames },
+        innameMultiPlugin: { innames, endlines },
         nowPlugin: {
           nowX, nowY,
           nowClock: nowX != null ? decToClock(now) : null
@@ -933,6 +1023,13 @@ render();
 
 setInterval(render, 60 * 1000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+
+document.addEventListener('touchstart', (e) => {
+  if (chart && !e.target.closest('#chart')) {
+    chart.tooltip.setActiveElements([], {});
+    chart.update('none');
+  }
+});
 
 // Service worker (offline support after first load)
 if ('serviceWorker' in navigator) {
