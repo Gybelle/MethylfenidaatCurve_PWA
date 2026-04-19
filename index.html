@@ -40,8 +40,6 @@
       background: var(--bg);
       color: var(--value);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-      font-size: 16px;
-      line-height: 1.4;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -92,20 +90,19 @@
       border: 1px solid var(--border);
       background: #fff;
       color: var(--value);
-      font-size: 15px;
       font-weight: 500;
       padding: 10px 12px;
       border-radius: 10px;
-      min-height: 44px;
       cursor: pointer;
       font-family: inherit;
+      font-size: 11px;
       transition: transform 0.05s ease, background 0.15s ease, border-color 0.15s ease;
     }
     .dose-toggle button:active { transform: scale(0.97); }
     .dose-toggle button.active {
-      background: var(--med-peak);
+      background: var(--rebound-peak);
       color: #fff;
-      border-color: var(--med-peak);
+      border-color: var(--rebound-peak);
     }
 
     .btn-row {
@@ -119,14 +116,13 @@
       border: 1px solid var(--border);
       background: #fff;
       color: var(--value);
-      font-size: 16px;
       font-weight: 500;
       padding: 12px 16px;
       border-radius: 10px;
-      min-height: 48px;
       cursor: pointer;
       font-family: inherit;
       transition: transform 0.05s ease, background 0.15s ease;
+      font-size: 11px;
     }
     .btn:active { transform: scale(0.97); }
     .btn-primary {
@@ -145,14 +141,13 @@
     }
     input[type="time"] {
       flex: 1 1 auto;
-      font-size: 17px;
       padding: 10px 12px;
       border: 1px solid var(--border);
       border-radius: 10px;
       background: #fff;
       color: var(--value);
       font-family: inherit;
-      min-height: 48px;
+      font-size: 12px;
     }
 
     /* ───── Doses list ───── */
@@ -186,12 +181,12 @@
     .dose-swatch.d10 { background: #b8d1bb; }
     .dose-body { flex: 1 1 auto; min-width: 0; }
     .dose-time {
-      font-size: 15px;
       font-weight: 600;
+      font-size: 11px;
       color: var(--value);
     }
     .dose-meta {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--label);
       margin-top: 2px;
     }
@@ -200,7 +195,6 @@
       border: none;
       background: transparent;
       color: var(--label);
-      font-size: 20px;
       line-height: 1;
       padding: 6px 8px;
       border-radius: 8px;
@@ -254,19 +248,19 @@
       gap: 10px;
     }
     .now-card .now-label {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--now);
       text-transform: uppercase;
       letter-spacing: 0.04em;
       font-weight: 600;
     }
     .now-card .now-value {
-      font-size: 15px;
       color: var(--value);
       font-weight: 600;
+      font-size: 12px;
     }
     .now-card .now-phase {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--label);
       text-align: right;
     }
