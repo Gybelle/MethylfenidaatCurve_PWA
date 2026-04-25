@@ -376,8 +376,8 @@
     <div class="legend-item"><span class="swatch dashed"></span>Rebound</div>
     <div class="legend-item"><span class="dot" style="background:var(--med-peak)"></span>Intake</div>
     <div class="legend-item"><span class="swatch" style="background:var(--now)"></span>Now</div>
-    <div class="legend-item"><span class="swatch" style="background:rgba(100,180,120,0.5)"></span>L-Tyrosine OK</div>
-    <div class="legend-item"><span class="swatch" style="background:rgba(200,90,80,0.45)"></span>L-Tyrosine vermijden</div>
+    <div class="legend-item"><span class="swatch" style="background:rgba(100,180,120,0.5)"></span>L-Tyrosine safe</div>
+    <div class="legend-item"><span class="swatch" style="background:rgba(200,90,80,0.45)"></span>L-Tyrosine avoid</div>
   </div>
 
   <p class="disclaimer">Indicative curve based on average pharmacokinetics of methylphenidate IR. Amplitude scales linearly with the dose (10 mg ≈ half the height of 20 mg). Individual variation is possible.</p>
@@ -404,9 +404,9 @@
     </ul>
     <div class="rules-section">L-Tyrosine</div>
     <ul class="rules-list">
-      <li><strong>Ten laatste vóór:</strong> 30 min vóór de eerste inname — dan is er genoeg tijd om het op te nemen vóór Rilatine start</li>
-      <li><strong>Ten vroegste ná:</strong> na het einde van de rebound van de laatste dosis (~7u15 ná)</li>
-      <li>Vermijd inname tijdens de werking van Rilatine: methylfenidaat en L-tyrosine concurreren bij opname in de hersenen</li>
+      <li><strong>Latest before:</strong> 30 min before the first intake — enough time to absorb before methylphenidate starts</li>
+      <li><strong>Earliest after:</strong> after the end of the rebound of the last dose (~7 h 15 min after)</li>
+      <li>Avoid taking during active methylphenidate effect: methylphenidate and L-tyrosine compete for the same transporter into the brain</li>
     </ul>
   </div>
 </div>
@@ -766,11 +766,11 @@ const ltyrosinePlugin = {
 
     if (uiterstVoor > scales.x.min && uiterstVoor < scales.x.max) {
       ctx.textAlign = 'right';
-      ctx.fillText('uiterste vóór', xUV - 3, bandTop - 1);
+      ctx.fillText('latest before', xUV - 3, bandTop - 1);
     }
     if (vroegsteNa > scales.x.min && vroegsteNa < scales.x.max) {
       ctx.textAlign = 'left';
-      ctx.fillText('vroegste ná', xVN + 3, bandTop - 1);
+      ctx.fillText('earliest after', xVN + 3, bandTop - 1);
     }
 
     // "L-Tyr" strip label
