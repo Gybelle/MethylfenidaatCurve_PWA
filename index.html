@@ -30,6 +30,7 @@
       --value: #3a3530;
       --baseline: rgba(180,168,154,0.5);
       --now: #d17b3a;
+      --ltyrosine: #7a5faa;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -375,6 +376,8 @@
     <div class="legend-item"><span class="swatch dashed"></span>Rebound</div>
     <div class="legend-item"><span class="dot" style="background:var(--med-peak)"></span>Intake</div>
     <div class="legend-item"><span class="swatch" style="background:var(--now)"></span>Now</div>
+    <div class="legend-item"><span class="swatch" style="background:rgba(100,180,120,0.5)"></span>L-Tyrosine OK</div>
+    <div class="legend-item"><span class="swatch" style="background:rgba(200,90,80,0.45)"></span>L-Tyrosine vermijden</div>
   </div>
 
   <p class="disclaimer">Indicative curve based on average pharmacokinetics of methylphenidate IR. Amplitude scales linearly with the dose (10 mg ≈ half the height of 20 mg). Individual variation is possible.</p>
@@ -398,6 +401,12 @@
       <li>The rebound of the first dose is suppressed — as long as the second dose keeps the combined effect above ~5% of peak, no rebound dip occurs</li>
       <li>The eventual rebound (of the last dose) is more intense: the brain was exposed to a higher combined peak, so the compensatory drop is proportionally deeper</li>
       <li>The later the second dose, the less amplification — because the first dose has already worn off more by then</li>
+    </ul>
+    <div class="rules-section">L-Tyrosine</div>
+    <ul class="rules-list">
+      <li><strong>Ten laatste vóór:</strong> 30 min vóór de eerste inname — dan is er genoeg tijd om het op te nemen vóór Rilatine start</li>
+      <li><strong>Ten vroegste ná:</strong> na het einde van de rebound van de laatste dosis (~7u15 ná)</li>
+      <li>Vermijd inname tijdens de werking van Rilatine: methylfenidaat en L-tyrosine concurreren bij opname in de hersenen</li>
     </ul>
   </div>
 </div>
@@ -707,6 +716,74 @@ const innameMultiPlugin = {
     }
   }
 };
+const ltyrosinePlugin = {
+  id: 'ltyrosinePlugin',
+  afterDraw(chart, args, opts) {
+    const { uiterstVoor, vroegsteNa } = opts;
+    if (uiterstVoor == null || vroegsteNa == null) return;
+    const { ctx, chartArea, scales } = chart;
+
+    const BAND_H = 10;
+    const bandTop = chartArea.bottom - BAND_H;
+    const xStart = chartArea.left;
+    const xEnd = chartArea.right;
+    const clamp = (v) => Math.max(xStart, Math.min(xEnd, scales.x.getPixelForValue(v)));
+
+    const xUV = clamp(uiterstVoor);
+    const xVN = clamp(vroegsteNa);
+
+    ctx.save();
+
+    // Safe zone before
+    ctx.fillStyle = 'rgba(100,180,120,0.5)';
+    ctx.fillRect(xStart, bandTop, xUV - xStart, BAND_H);
+    // Avoid zone
+    ctx.fillStyle = 'rgba(200,90,80,0.45)';
+    ctx.fillRect(xUV, bandTop, xVN - xUV, BAND_H);
+    // Safe zone after
+    ctx.fillStyle = 'rgba(100,180,120,0.5)';
+    ctx.fillRect(xVN, bandTop, xEnd - xVN, BAND_H);
+
+    // Boundary ticks
+    ctx.strokeStyle = '#7a5faa';
+    ctx.setLineDash([]);
+    ctx.lineWidth = 1.5;
+
+    const drawTick = (xPx) => {
+      ctx.beginPath();
+      ctx.moveTo(xPx, bandTop - 2);
+      ctx.lineTo(xPx, bandTop + BAND_H);
+      ctx.stroke();
+    };
+
+    if (uiterstVoor > scales.x.min && uiterstVoor < scales.x.max) drawTick(xUV);
+    if (vroegsteNa   > scales.x.min && vroegsteNa   < scales.x.max) drawTick(xVN);
+
+    // Labels above band
+    ctx.font = '9px -apple-system, system-ui, sans-serif';
+    ctx.fillStyle = '#7a5faa';
+    ctx.textBaseline = 'bottom';
+
+    if (uiterstVoor > scales.x.min && uiterstVoor < scales.x.max) {
+      ctx.textAlign = 'right';
+      ctx.fillText('uiterste vóór', xUV - 3, bandTop - 1);
+    }
+    if (vroegsteNa > scales.x.min && vroegsteNa < scales.x.max) {
+      ctx.textAlign = 'left';
+      ctx.fillText('vroegste ná', xVN + 3, bandTop - 1);
+    }
+
+    // "L-Tyr" strip label
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font = '8px -apple-system, system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(60,30,100,0.55)';
+    ctx.fillText('L-Tyr', xStart + 4, bandTop + BAND_H / 2);
+
+    ctx.restore();
+  }
+};
+
 const baselinePlugin = {
   id: 'baselinePlugin',
   afterDraw(chart) {
@@ -848,6 +925,10 @@ function renderChart(state) {
     .map((d, i) => ({ x: d.time + 5 - start, label: `~done [${i+1}]` }))
     .filter(n => n.x >= 0 && n.x <= end - start);
 
+  // L-Tyrosine timing: latest before first dose (−30 min), earliest after last rebound
+  const ltyUiterstVoor = firstT - 0.5 - start;
+  const ltyVroegsteNa  = lastT + REBOUND_END - start;
+
   const ctx = document.getElementById('chart').getContext('2d');
   if (chart) chart.destroy();
 
@@ -957,10 +1038,11 @@ function renderChart(state) {
         nowPlugin: {
           nowX, nowY,
           nowClock: nowX != null ? decToClock(now) : null
-        }
+        },
+        ltyrosinePlugin: { uiterstVoor: ltyUiterstVoor, vroegsteNa: ltyVroegsteNa }
       }
     },
-    plugins: [innameMultiPlugin, baselinePlugin, nowPlugin]
+    plugins: [innameMultiPlugin, baselinePlugin, nowPlugin, ltyrosinePlugin]
   });
 }
 
