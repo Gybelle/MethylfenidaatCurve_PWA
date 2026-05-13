@@ -81,6 +81,7 @@
 
     .dose-toggle {
       display: flex;
+      flex-wrap: wrap;
       gap: 6px;
       margin-bottom: 12px;
     }
@@ -178,7 +179,9 @@
       background: var(--med-peak);
       flex-shrink: 0;
     }
-    .dose-swatch.d10 { background: #b8d1bb; }
+    .dose-swatch.d10   { background: #b8d1bb; }
+    .dose-swatch.dmk30 { background: #c96a68; }
+    .dose-swatch.drl30 { background: #e7acaa; }
     .dose-body { flex: 1 1 auto; min-width: 0; }
     .dose-time {
       font-weight: 600;
@@ -336,8 +339,10 @@
 <div class="input-card">
   <div class="field-label">Dose for next intake</div>
   <div class="dose-toggle" id="dose-toggle">
-    <button data-mg="10">10 mg</button>
-    <button data-mg="20" class="active">20 mg</button>
+    <button data-mg="10"  data-type="ir"   data-delay="0">10 mg</button>
+    <button data-mg="20"  data-type="ir"   data-delay="0" class="active">20 mg</button>
+    <button data-mg="30"  data-type="mk30" data-delay="3.5">MK Retard 30</button>
+    <button data-mg="30"  data-type="rl30" data-delay="4">Rilatine MR 30</button>
   </div>
 
   <div class="time-row">
@@ -480,16 +485,19 @@ function clearState() {
 function getOrInitState() {
   let s = loadState();
   if (!s) {
-    s = { date: todayStr(), doses: [], selectedMg: 20 };
+    s = { date: todayStr(), doses: [], selectedMg: 20, selectedType: 'ir' };
     saveState(s);
   }
+  // Migrate legacy doses without type/delay
+  if (s.doses) s.doses.forEach(d => { if (!d.type) { d.type = 'ir'; d.delay = 0; } });
   return s;
 }
-function addDose(time, mg) {
+function addDose(time, mg, type = 'ir', delay = 0) {
   const s = getOrInitState();
-  s.doses.push({ id: uid(), time, mg });
+  s.doses.push({ id: uid(), time, mg, type, delay });
   s.doses.sort((a,b) => a.time - b.time);
   s.selectedMg = mg;
+  s.selectedType = type;
   saveState(s);
   return s;
 }
@@ -504,9 +512,10 @@ function removeDose(id) {
   saveState(s);
   return s;
 }
-function setSelectedMg(mg) {
+function setSelected(mg, type) {
   const s = getOrInitState();
   s.selectedMg = mg;
+  s.selectedType = type;
   saveState(s);
 }
 
@@ -545,22 +554,47 @@ function reboundValue(dt) {
   return Math.min(0, _reboundRaw(dt) * REBOUND_SCALE);
 }
 
+function isMR(dose) { return dose.type && dose.type !== 'ir'; }
+
 function medAt(dose, t) {
-  const scale = dose.mg / REFERENCE_MG;
-  return medValue(t - dose.time) * scale;
+  if (isMR(dose)) {
+    const half = (dose.mg / 2) / REFERENCE_MG;
+    return medValue(t - dose.time) * half +
+           medValue(t - dose.time - dose.delay) * half;
+  }
+  return medValue(t - dose.time) * (dose.mg / REFERENCE_MG);
 }
-function reboundAt(dose, allDoses, t) {
-  const scale = dose.mg / REFERENCE_MG;
-  const rb = reboundValue(t - dose.time) * scale;
+
+function _reboundForSubDose(subTime, halfScale, suppressorMedFn, allDoses, t) {
+  const rb = reboundValue(t - subTime) * halfScale;
   if (rb >= 0) return 0;
-  // Suppress rebound while other doses still have detectable effect
-  const otherMed = allDoses.reduce((s, d) => d.id !== dose.id ? s + medAt(d, t) : s, 0);
+  const otherMed = suppressorMedFn(t);
   if (otherMed > 0.05) return 0;
-  // Amplify rebound based on combined peak exposure during this dose's active window
-  const peakTime = dose.time + PEAK_DT;
+  const peakTime = subTime + PEAK_DT;
   const combinedPeak = combinedMed(allDoses, peakTime);
-  const boost = Math.max(1, combinedPeak / scale);
+  const boost = Math.max(1, combinedPeak / halfScale);
   return rb * boost;
+}
+
+function reboundAt(dose, allDoses, t) {
+  const externalMed = (tt) => allDoses.reduce((s, d) => d.id !== dose.id ? s + medAt(d, tt) : s, 0);
+
+  if (isMR(dose)) {
+    const half = (dose.mg / 2) / REFERENCE_MG;
+    const t2 = dose.time + dose.delay;
+    // Sub-dose 1: suppressed by sub-dose 2 (same pill) + other external doses
+    const rb1 = _reboundForSubDose(
+      dose.time, half,
+      (tt) => externalMed(tt) + medValue(tt - t2) * half,
+      allDoses, t
+    );
+    // Sub-dose 2: suppressed only by external doses
+    const rb2 = _reboundForSubDose(t2, half, externalMed, allDoses, t);
+    return rb1 + rb2;
+  }
+
+  const scale = dose.mg / REFERENCE_MG;
+  return _reboundForSubDose(dose.time, scale, externalMed, allDoses, t);
 }
 function combinedMed(doses, t) {
   let s = 0;
@@ -623,11 +657,25 @@ function render() {
 }
 
 function renderDoseToggle(state) {
-  const selected = (state && state.selectedMg) || 20;
+  const selMg   = (state && state.selectedMg)   || 20;
+  const selType = (state && state.selectedType)  || 'ir';
   document.querySelectorAll('#dose-toggle button').forEach(btn => {
-    const mg = Number(btn.dataset.mg);
-    btn.classList.toggle('active', mg === selected);
+    btn.classList.toggle('active',
+      Number(btn.dataset.mg) === selMg && (btn.dataset.type || 'ir') === selType);
   });
+}
+
+function doseSwatchClass(d) {
+  if (d.mg === 10)          return 'd10';
+  if (d.type === 'mk30')    return 'dmk30';
+  if (d.type === 'rl30')    return 'drl30';
+  return '';
+}
+
+function doseLabelShort(d) {
+  if (d.type === 'mk30') return 'MK Retard 30 mg';
+  if (d.type === 'rl30') return 'Rilatine MR 30 mg';
+  return `${d.mg} mg`;
 }
 
 function renderDosesList(state) {
@@ -637,16 +685,27 @@ function renderDosesList(state) {
     return;
   }
   wrap.innerHTML = state.doses.map(d => {
-    const peak    = decToClock(d.time + PEAK_DT);
-    const done    = decToClock(d.time + 5);
-    const reboundA = decToClock(d.time + REBOUND_START);
-    const reboundB = decToClock(d.time + REBOUND_END);
+    let meta;
+    if (isMR(d)) {
+      const peak1   = decToClock(d.time + PEAK_DT);
+      const peak2   = decToClock(d.time + d.delay + PEAK_DT);
+      const done    = decToClock(d.time + d.delay + 5);
+      const reboundA = decToClock(d.time + d.delay + REBOUND_START);
+      const reboundB = decToClock(d.time + d.delay + REBOUND_END);
+      meta = `Peak 1 ${peak1} · Peak 2 ${peak2} · ~done ${done} · rebound ${reboundA}–${reboundB}`;
+    } else {
+      const peak    = decToClock(d.time + PEAK_DT);
+      const done    = decToClock(d.time + 5);
+      const reboundA = decToClock(d.time + REBOUND_START);
+      const reboundB = decToClock(d.time + REBOUND_END);
+      meta = `Peak ${peak} · ~done ${done} · rebound ${reboundA}–${reboundB}`;
+    }
     return `
       <div class="dose-row">
-        <span class="dose-swatch ${d.mg === 10 ? 'd10' : ''}"></span>
+        <span class="dose-swatch ${doseSwatchClass(d)}"></span>
         <div class="dose-body">
-          <div class="dose-time">${decToClock(d.time)} · ${d.mg} mg</div>
-          <div class="dose-meta">Peak ${peak} · done ${done} · rebound ${reboundA}–${reboundB}</div>
+          <div class="dose-time">${decToClock(d.time)} · ${doseLabelShort(d)}</div>
+          <div class="dose-meta">${meta}</div>
         </div>
         <button class="dose-del" aria-label="Delete" data-id="${d.id}">×</button>
       </div>`;
@@ -792,11 +851,12 @@ function roundRect(ctx, x, y, w, h, r) {
 function renderChart(state) {
   const doses = state.doses;
 
-  const firstT = Math.min(...doses.map(d => d.time));
-  const lastT  = Math.max(...doses.map(d => d.time));
-  const now    = nowDecimalHours();
-  const start  = Math.min(firstT - 2, now - 0.25);
-  const end    = Math.max(lastT + 9, now + 0.25);
+  const firstT    = Math.min(...doses.map(d => d.time));
+  const lastT     = Math.max(...doses.map(d => d.time));
+  const lastEndT  = Math.max(...doses.map(d => isMR(d) ? d.time + d.delay : d.time));
+  const now       = nowDecimalHours();
+  const start     = Math.min(firstT - 2, now - 0.25);
+  const end       = Math.max(lastEndT + 9, now + 0.25);
 
   const step = 0.25;
   const medPoints = [];
@@ -811,8 +871,12 @@ function renderChart(state) {
     medPoints.push({ x: xRel, y: med });
     let anyRb = false;
     for (const d of doses) {
-      const dt = t - d.time;
-      if (dt >= REBOUND_START && dt <= REBOUND_END) { anyRb = true; break; }
+      const subTimes = isMR(d) ? [d.time, d.time + d.delay] : [d.time];
+      for (const st of subTimes) {
+        const dt = t - st;
+        if (dt >= REBOUND_START && dt <= REBOUND_END) { anyRb = true; break; }
+      }
+      if (anyRb) break;
     }
     rbPoints.push({ x: xRel, y: anyRb ? rb : null });
     if (med > yMaxSeen) yMaxSeen = med;
@@ -821,12 +885,15 @@ function renderChart(state) {
 
   // Guarantee boundary zeros for rebound segments
   for (const d of doses) {
-    for (const edge of [REBOUND_START, REBOUND_END]) {
-      const tEdge = d.time + edge;
-      if (tEdge < start || tEdge > end) continue;
-      const xRel = tEdge - start;
-      const exists = rbPoints.some(p => Math.abs(p.x - xRel) < 1e-3);
-      if (!exists) rbPoints.push({ x: xRel, y: 0 });
+    const subTimes = isMR(d) ? [d.time, d.time + d.delay] : [d.time];
+    for (const st of subTimes) {
+      for (const edge of [REBOUND_START, REBOUND_END]) {
+        const tEdge = st + edge;
+        if (tEdge < start || tEdge > end) continue;
+        const xRel = tEdge - start;
+        const exists = rbPoints.some(p => Math.abs(p.x - xRel) < 1e-3);
+        if (!exists) rbPoints.push({ x: xRel, y: 0 });
+      }
     }
   }
   rbPoints.sort((a,b) => a.x - b.x);
@@ -840,12 +907,23 @@ function renderChart(state) {
     nowY = combinedTotal(doses, now);
   }
 
-  const innames = doses
-    .map((d, i) => ({ x: d.time - start, label: `${d.mg}mg [${i+1}]` }))
-    .filter(n => n.x >= 0 && n.x <= end - start);
+  const innames = [];
+  doses.forEach((d, i) => {
+    const lbl = isMR(d) ? `${d.type === 'mk30' ? 'MK' : 'RL'}30 [${i+1}]` : `${d.mg}mg [${i+1}]`;
+    const x = d.time - start;
+    if (x >= 0 && x <= end - start) innames.push({ x, label: lbl });
+    if (isMR(d)) {
+      const x2 = d.time + d.delay - start;
+      if (x2 >= 0 && x2 <= end - start)
+        innames.push({ x: x2, label: `[${i+1}b]` });
+    }
+  });
 
   const endlines = doses
-    .map((d, i) => ({ x: d.time + 5 - start, label: `~done [${i+1}]` }))
+    .map((d, i) => {
+      const doneOffset = isMR(d) ? d.delay + 5 : 5;
+      return { x: d.time + doneOffset - start, label: `~done [${i+1}]` };
+    })
     .filter(n => n.x >= 0 && n.x <= end - start);
 
   const ctx = document.getElementById('chart').getContext('2d');
@@ -965,9 +1043,11 @@ function renderChart(state) {
 }
 
 // ── events ───────────────────────────────────────────────────
-function getSelectedMg() {
+function getSelected() {
   const active = document.querySelector('#dose-toggle button.active');
-  return active ? Number(active.dataset.mg) : 20;
+  return active
+    ? { mg: Number(active.dataset.mg), type: active.dataset.type || 'ir', delay: Number(active.dataset.delay || 0) }
+    : { mg: 20, type: 'ir', delay: 0 };
 }
 
 document.getElementById('dose-toggle').addEventListener('click', (e) => {
@@ -975,12 +1055,13 @@ document.getElementById('dose-toggle').addEventListener('click', (e) => {
   if (!btn) return;
   document.querySelectorAll('#dose-toggle button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  setSelectedMg(Number(btn.dataset.mg));
+  setSelected(Number(btn.dataset.mg), btn.dataset.type || 'ir');
 });
 
 document.getElementById('take-now-btn').addEventListener('click', () => {
   const now = nowDecimalHours();
-  addDose(Math.round(now * 60) / 60, getSelectedMg());
+  const { mg, type, delay } = getSelected();
+  addDose(Math.round(now * 60) / 60, mg, type, delay);
   render();
 });
 
@@ -988,7 +1069,8 @@ document.getElementById('set-time-btn').addEventListener('click', () => {
   const val = document.getElementById('time-input').value;
   const parsed = parseTimeInput(val);
   if (parsed == null) return;
-  addDose(parsed, getSelectedMg());
+  const { mg, type, delay } = getSelected();
+  addDose(parsed, mg, type, delay);
   render();
 });
 
