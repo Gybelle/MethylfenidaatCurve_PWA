@@ -182,7 +182,7 @@
     }
     .dose-swatch.d10   { background: #b8d1bb; }
     .dose-swatch.dmk30 { background: #c96a68; }
-    .dose-swatch.drl30 { background: #e7acaa; }
+    .dose-swatch.drl30 { background: #7a9abf; }
     .dose-body { flex: 1 1 auto; min-width: 0; }
     .dose-time {
       font-weight: 600;
@@ -328,6 +328,52 @@
       color: var(--value);
       line-height: 1.5;
     }
+
+    /* ───── Comparison grid ───── */
+    .comp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .comp-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .comp-header {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 7px 10px;
+      letter-spacing: 0.01em;
+    }
+    .comp-body {
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .comp-row {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      font-size: 11px;
+      color: var(--value);
+      line-height: 1.4;
+    }
+    .comp-key {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--label);
+    }
+    .comp-sleep {
+      margin-top: 3px;
+      padding-top: 5px;
+      border-top: 1px solid var(--border);
+    }
   </style>
 </head>
 <body>
@@ -414,6 +460,72 @@
       <li>Avoid taking during active methylphenidate effect: methylphenidate and L-tyrosine compete for the same transporter into the brain</li>
     </ul>
   </div>
+</div>
+
+<!-- ── Formulation comparison ── -->
+<div class="chart-card" style="margin-top:4px">
+  <div class="rules-title" style="margin-bottom:8px">Formulation comparison — effect from a single dose</div>
+  <div class="chart-wrapper" style="height:260px">
+    <canvas id="comparison-chart"></canvas>
+  </div>
+  <div class="legend" style="margin-top:6px">
+    <div class="legend-item"><span class="swatch" style="background:#b8d1bb"></span>IR 10 mg</div>
+    <div class="legend-item"><span class="swatch" style="background:#4a7a50"></span>IR 20 mg</div>
+    <div class="legend-item"><span class="swatch" style="background:#c96a68"></span>MK Retard 30 mg</div>
+    <div class="legend-item"><span class="swatch" style="background:#7a9abf"></span>Rilatine MR 30 mg</div>
+  </div>
+</div>
+
+<div class="comp-grid">
+
+  <div class="comp-card">
+    <div class="comp-header" style="background:#b8d1bb;color:#3a3530">IR 10 mg</div>
+    <div class="comp-body">
+      <div class="comp-row"><span class="comp-key">Type</span><span>Immediate release</span></div>
+      <div class="comp-row"><span class="comp-key">Release</span><span>Single pulse</span></div>
+      <div class="comp-row"><span class="comp-key">Peak</span><span>~43 min after intake</span></div>
+      <div class="comp-row"><span class="comp-key">Duration</span><span>~5 h</span></div>
+      <div class="comp-row"><span class="comp-key">Rebound</span><span>4 h 45 min – 7 h 15 min</span></div>
+      <div class="comp-row comp-sleep"><span class="comp-key">Sleep 23:00</span><span>Last dose by <strong>~15:45</strong></span></div>
+    </div>
+  </div>
+
+  <div class="comp-card">
+    <div class="comp-header" style="background:#4a7a50;color:#fff">IR 20 mg</div>
+    <div class="comp-body">
+      <div class="comp-row"><span class="comp-key">Type</span><span>Immediate release</span></div>
+      <div class="comp-row"><span class="comp-key">Release</span><span>Single pulse</span></div>
+      <div class="comp-row"><span class="comp-key">Peak</span><span>~43 min after intake</span></div>
+      <div class="comp-row"><span class="comp-key">Duration</span><span>~5 h</span></div>
+      <div class="comp-row"><span class="comp-key">Rebound</span><span>4 h 45 min – 7 h 15 min</span></div>
+      <div class="comp-row comp-sleep"><span class="comp-key">Sleep 23:00</span><span>Last dose by <strong>~15:45</strong></span></div>
+    </div>
+  </div>
+
+  <div class="comp-card">
+    <div class="comp-header" style="background:#c96a68;color:#fff">MK Retard 30 mg</div>
+    <div class="comp-body">
+      <div class="comp-row"><span class="comp-key">Type</span><span>Modified release (50/50)</span></div>
+      <div class="comp-row"><span class="comp-key">Release</span><span>15 mg now + 15 mg at +3 h 30</span></div>
+      <div class="comp-row"><span class="comp-key">Peak</span><span>~43 min &amp; ~4 h 13 min</span></div>
+      <div class="comp-row"><span class="comp-key">Duration</span><span>~8 h 30 min</span></div>
+      <div class="comp-row"><span class="comp-key">Rebound</span><span>8 h 15 min – 10 h 45 min</span></div>
+      <div class="comp-row comp-sleep"><span class="comp-key">Sleep 23:00</span><span>Last dose by <strong>~12:15</strong></span></div>
+    </div>
+  </div>
+
+  <div class="comp-card">
+    <div class="comp-header" style="background:#7a9abf;color:#fff">Rilatine MR 30 mg</div>
+    <div class="comp-body">
+      <div class="comp-row"><span class="comp-key">Type</span><span>Modified release (50/50)</span></div>
+      <div class="comp-row"><span class="comp-key">Release</span><span>15 mg now + 15 mg at +4 h</span></div>
+      <div class="comp-row"><span class="comp-key">Peak</span><span>~43 min &amp; ~4 h 43 min</span></div>
+      <div class="comp-row"><span class="comp-key">Duration</span><span>~9 h</span></div>
+      <div class="comp-row"><span class="comp-key">Rebound</span><span>8 h 45 min – 11 h 15 min</span></div>
+      <div class="comp-row comp-sleep"><span class="comp-key">Sleep 23:00</span><span>Last dose by <strong>~11:45</strong></span></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1181,9 +1293,92 @@ document.getElementById('clear-all-btn').addEventListener('click', () => {
   document.getElementById('time-input').value = v;
 })();
 
+// ── Comparison chart ─────────────────────────────────────────
+function computeComparisonCurve(mg, type, delay) {
+  const dose = { id: 'cmp_' + type, time: 0, mg, type: type || 'ir', delay: delay || 0 };
+  const allDoses = [dose];
+  const pts = [];
+  for (let t = 0; t <= 12.5; t += 0.1) {
+    const med = medAt(dose, t);
+    const rb  = reboundAt(dose, allDoses, t);
+    pts.push({ x: Math.round(t * 10) / 10, y: med + rb });
+  }
+  return pts;
+}
+
+let compChart = null;
+function initComparisonChart() {
+  const variants = [
+    { mg: 10, type: 'ir',   delay: 0,   color: '#b8d1bb', label: 'IR 10 mg' },
+    { mg: 20, type: 'ir',   delay: 0,   color: '#4a7a50', label: 'IR 20 mg' },
+    { mg: 30, type: 'mk30', delay: 3.5, color: '#c96a68', label: 'MK Retard 30 mg' },
+    { mg: 30, type: 'rl30', delay: 4,   color: '#7a9abf', label: 'Rilatine MR 30 mg' },
+  ];
+  const datasets = variants.map(v => ({
+    label: v.label,
+    data: computeComparisonCurve(v.mg, v.type, v.delay),
+    borderColor: v.color,
+    backgroundColor: 'transparent',
+    fill: false,
+    tension: 0.35,
+    borderWidth: 2.5,
+    pointRadius: 0,
+    pointHoverRadius: 4,
+  }));
+  const ctx = document.getElementById('comparison-chart').getContext('2d');
+  if (compChart) compChart.destroy();
+  compChart = new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      interaction: { mode: 'index', axis: 'x', intersect: false },
+      scales: {
+        x: {
+          type: 'linear', min: 0, max: 12,
+          ticks: { color: '#8a8078', font: { size: 10 }, stepSize: 1,
+            callback: v => `+${v}h` },
+          grid: { color: 'rgba(211,200,184,0.35)' },
+          title: { display: true, text: 'Hours after intake', color: '#8a8078',
+            font: { size: 10 } }
+        },
+        y: {
+          min: -0.65, max: 1.6,
+          ticks: { color: '#8a8078', font: { size: 10 }, stepSize: 0.25,
+            callback: v => {
+              if (Math.abs(v-1)    < 0.05) return 'Peak';
+              if (Math.abs(v-0.75) < 0.05) return 'High';
+              if (Math.abs(v-0.5)  < 0.05) return 'Moderate';
+              if (Math.abs(v-0.25) < 0.05) return 'Low';
+              if (Math.abs(v)      < 0.02) return 'Base';
+              if (Math.abs(v+0.25) < 0.05) return 'Rebound';
+              return '';
+            }
+          },
+          grid: { color: 'rgba(211,200,184,0.35)' }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#3a3530', titleColor: '#fff', bodyColor: '#eee',
+          padding: 10, displayColors: true,
+          callbacks: {
+            title: items => items.length ? `+${items[0].parsed.x} h after intake` : '',
+          }
+        }
+      }
+    },
+    plugins: [baselinePlugin]
+  });
+}
+
 // Init
 migrateLegacy();
 render();
+initComparisonChart();
 
 setInterval(render, 60 * 1000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
