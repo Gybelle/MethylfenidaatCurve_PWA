@@ -2,7 +2,7 @@
    Simple cache-first strategy for the app shell.
    Bump CACHE_NAME whenever you deploy new files. */
 
-const CACHE_NAME = 'rilatine-v6';
+const CACHE_NAME = 'rilatine-v7';
 const ASSETS = [
   './',
   './index.html',
