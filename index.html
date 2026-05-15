@@ -380,16 +380,16 @@
 
 <header>
   <h1>Rilatine Curve</h1>
-  <p class="subtitle">Effect curve of your methylphenidate IR, including rebound. Multiple doses per day are summed.</p>
+  <p class="subtitle">Effect curve of your methylphenidate IR/MR/Retard, including rebound. Multiple doses per day are summed.</p>
 </header>
 
 <div class="input-card">
   <div class="field-label">Dose for next intake</div>
   <div class="dose-toggle" id="dose-toggle">
     <button data-mg="10"  data-type="ir"   data-delay="0">10 mg</button>
-    <button data-mg="20"  data-type="ir"   data-delay="0" class="active">20 mg</button>
+    <button data-mg="20"  data-type="ir"   data-delay="0">20 mg</button>
     <button data-mg="30"  data-type="mk30" data-delay="3.5">MK Retard 30</button>
-    <button data-mg="30"  data-type="rl30" data-delay="4">Rilatine MR 30</button>
+    <button data-mg="30"  data-type="rl30" data-delay="4" class="active">Rilatine MR 30</button>
   </div>
 
   <div class="time-row">
@@ -433,33 +433,6 @@
 
   <p class="disclaimer">Indicative curve based on average pharmacokinetics of methylphenidate IR. Amplitude scales linearly with the dose (10 mg ≈ half the height of 20 mg). Individual variation is possible.</p>
 
-  <div class="rules-card">
-    <div class="rules-title">How methylphenidate IR works</div>
-    <div class="rules-section">Effect</div>
-    <ul class="rules-list">
-      <li>Peak effect ~43 min after intake</li>
-      <li>Effect mostly worn off after ~5 h (~done line) — a gradual tail remains</li>
-      <li>10 mg produces roughly half the effect of 20 mg</li>
-    </ul>
-    <div class="rules-section">Rebound</div>
-    <ul class="rules-list">
-      <li>Rebound dip starts ~4 h 45 min after intake, peaks ~5 h 15 min, ends ~7 h 15 min</li>
-      <li>Rebound is a compensatory drop below baseline as the brain readjusts</li>
-    </ul>
-    <div class="rules-section">Taking a second dose</div>
-    <ul class="rules-list">
-      <li>The second dose extends and raises the combined effect curve</li>
-      <li>The rebound of the first dose is suppressed — as long as the second dose keeps the combined effect above ~5% of peak, no rebound dip occurs</li>
-      <li>The eventual rebound (of the last dose) is more intense: the brain was exposed to a higher combined peak, so the compensatory drop is proportionally deeper</li>
-      <li>The later the second dose, the less amplification — because the first dose has already worn off more by then</li>
-    </ul>
-    <div class="rules-section">L-Tyrosine</div>
-    <ul class="rules-list">
-      <li><strong>Latest before:</strong> 30 min before the first intake — enough time to absorb before methylphenidate starts</li>
-      <li><strong>Earliest after:</strong> after the end of the rebound of the last dose (~7 h 15 min after)</li>
-      <li>Avoid taking during active methylphenidate effect: methylphenidate and L-tyrosine compete for the same transporter into the brain</li>
-    </ul>
-  </div>
 </div>
 
 <!-- ── Formulation comparison ── -->
@@ -506,7 +479,7 @@
     <div class="comp-header" style="background:#c96a68;color:#fff">MK Retard 30 mg</div>
     <div class="comp-body">
       <div class="comp-row"><span class="comp-key">Type</span><span>Modified release (50/50)</span></div>
-      <div class="comp-row"><span class="comp-key">Release</span><span>15 mg now + 15 mg at +3 h 30</span></div>
+      <div class="comp-row"><span class="comp-key">Release</span><span>15 mg now + 15 mg at +3 h 30</span><span>Food intake does not affect absorption</span></div>
       <div class="comp-row"><span class="comp-key">Peak</span><span>~43 min &amp; ~4 h 13 min</span></div>
       <div class="comp-row"><span class="comp-key">Duration</span><span>~8 h 30 min</span></div>
       <div class="comp-row"><span class="comp-key">Rebound</span><span>8 h 15 min – 10 h 45 min</span></div>
@@ -518,7 +491,7 @@
     <div class="comp-header" style="background:#7a9abf;color:#fff">Rilatine MR 30 mg</div>
     <div class="comp-body">
       <div class="comp-row"><span class="comp-key">Type</span><span>Modified release (50/50)</span></div>
-      <div class="comp-row"><span class="comp-key">Release</span><span>15 mg now + 15 mg at +4 h</span></div>
+      <div class="comp-row"><span class="comp-key">Release</span><span>15 mg now + 15 mg at +4 h</span><span>Take with a (big) meal to prevent rapid release</span></div>
       <div class="comp-row"><span class="comp-key">Peak</span><span>~43 min &amp; ~4 h 43 min</span></div>
       <div class="comp-row"><span class="comp-key">Duration</span><span>~9 h</span></div>
       <div class="comp-row"><span class="comp-key">Rebound</span><span>8 h 45 min – 11 h 15 min</span></div>
@@ -527,6 +500,57 @@
   </div>
 
 </div>
+
+<div class="rules-card">
+    <div class="rules-title">How methylphenidate IR works</div>
+    <div class="rules-section">Effect</div>
+    <ul class="rules-list">
+      <li>Peak effect ~43 min after intake</li>
+      <li>Effect mostly worn off after ~5 h (~done line) — a gradual tail remains</li>
+      <li>10 mg produces roughly half the effect of 20 mg</li>
+    </ul>
+    <div class="rules-section">Rebound</div>
+    <ul class="rules-list">
+      <li>Rebound dip starts ~4 h 45 min after intake, peaks ~5 h 15 min, ends ~7 h 15 min</li>
+      <li>Rebound is a compensatory drop below baseline as the brain readjusts</li>
+    </ul>
+    <div class="rules-section">Taking a second dose</div>
+    <ul class="rules-list">
+      <li>The second dose extends and raises the combined effect curve</li>
+      <li>The rebound of the first dose is suppressed — as long as the second dose keeps the combined effect above ~5% of peak, no rebound dip occurs</li>
+      <li>The eventual rebound (of the last dose) is more intense: the brain was exposed to a higher combined peak, so the compensatory drop is proportionally deeper</li>
+      <li>The later the second dose, the less amplification — because the first dose has already worn off more by then</li>
+    </ul>
+
+    <div class="rules-title" style="margin-top:16px">How methylphenidate MR works</div>
+    <div class="rules-section">Release profile</div>
+    <ul class="rules-list">
+      <li>MR formulations (MK Retard, Rilatine MR) use a <strong>50/50 bimodal release</strong>: half the dose is released immediately, the other half is released in a delayed second pulse.</li>
+      <li>MK Retard releases the second pulse ~3 h 30 min after intake; Rilatine MR releases it ~4 h after intake.</li>
+      <li>The result is two distinct peaks and a much longer total duration (~8.5–9 h) compared to IR (~5 h).</li>
+    </ul>
+    <div class="rules-section">Rebound</div>
+    <ul class="rules-list">
+      <li>The second pulse suppresses the rebound of the first pulse — the brain stays elevated long enough that no dip occurs between pulses.</li>
+      <li>The only rebound occurs after the second pulse wears off, at ~8–11 h after intake.</li>
+      <li>Because the brain has been exposed to a higher combined peak for longer, the eventual rebound may be somewhat more pronounced than with a single IR dose.</li>
+    </ul>
+    <div class="rules-section">Practical considerations</div>
+    <ul class="rules-list">
+      <li>The longer duration makes MR formulations less suitable for late-day use — take no later than ~12:00–12:15 if you want to sleep around 23:00.</li>
+      <li>You cannot "top up" an MR dose mid-afternoon the same way you can with IR, without significantly delaying the rebound and sleep onset.</li>
+    </ul>
+
+    <div class="rules-title" style="margin-top:16px">L-Tyrosine (optional)</div>
+    <ul class="rules-list">
+      <li><strong>Latest before:</strong> 30 min before the first intake — enough time to absorb before methylphenidate starts. This applies to all formulations, since the first pulse is always immediate release.</li>
+      <li><strong>Earliest after (IR 10 / 20 mg):</strong> ~7 h 15 min after the last dose — once the rebound has fully passed.</li>
+      <li><strong>Earliest after (MK Retard 30 mg):</strong> ~10 h 45 min after intake — the second pulse delays the rebound by 3 h 30 min.</li>
+      <li><strong>Earliest after (Rilatine MR 30 mg):</strong> ~11 h 15 min after intake — the second pulse delays the rebound by 4 h.</li>
+      <li>The dip between pulse 1 and pulse 2 in MR formulations is <strong>not</strong> a safe window — methylphenidate is still active and competing at the same transporter.</li>
+      <li>Avoid taking during any active methylphenidate effect: both compete for the same amino acid transporter into the brain (LAT1), reducing L-tyrosine uptake.</li>
+    </ul>
+  </div>
 
 <script>
 /* ────────────────────────────────────────────────────────────
@@ -1116,8 +1140,10 @@ function renderChart(state) {
     .filter(n => n.x >= 0 && n.x <= end - start);
 
   // L-Tyrosine timing: latest before first dose (−30 min), earliest after last rebound
+  // For MR doses the last effective sub-dose is at dose.time + delay
+  const lastEffectiveT = Math.max(...doses.map(d => isMR(d) ? d.time + d.delay : d.time));
   const ltyUiterstVoor = firstT - 0.5 - start;
-  const ltyVroegsteNa  = lastT + REBOUND_END - start;
+  const ltyVroegsteNa  = lastEffectiveT + REBOUND_END - start;
 
   const ctx = document.getElementById('chart').getContext('2d');
   if (chart) chart.destroy();
