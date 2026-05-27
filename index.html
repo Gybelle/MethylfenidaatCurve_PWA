@@ -183,6 +183,7 @@
     .dose-swatch.d10   { background: #b8d1bb; }
     .dose-swatch.dmk30 { background: #c96a68; }
     .dose-swatch.drl30 { background: #7a9abf; }
+    .dose-swatch.deq20 { background: #8b6caa; }
     .dose-body { flex: 1 1 auto; min-width: 0; }
     .dose-time {
       font-weight: 600;
@@ -386,10 +387,11 @@
 <div class="input-card">
   <div class="field-label">Dose for next intake</div>
   <div class="dose-toggle" id="dose-toggle">
-    <button data-mg="10"  data-type="ir"   data-delay="0">10 mg</button>
-    <button data-mg="20"  data-type="ir"   data-delay="0">20 mg</button>
+    <button data-mg="10"  data-type="ir"   data-delay="0">IR 10 mg</button>
+    <button data-mg="20"  data-type="ir"   data-delay="0">IR 20 mg</button>
     <button data-mg="30"  data-type="mk30" data-delay="3.5">MK Retard 30</button>
     <button data-mg="30"  data-type="rl30" data-delay="4" class="active">Rilatine MR 30</button>
+    <button data-mg="20"  data-type="eq20" data-delay="4" data-split="0.3">Equasym XR 20</button>
   </div>
 
   <div class="time-row">
@@ -446,6 +448,7 @@
     <div class="legend-item"><span class="swatch" style="background:#4a7a50"></span>IR 20 mg</div>
     <div class="legend-item"><span class="swatch" style="background:#c96a68"></span>MK Retard 30 mg</div>
     <div class="legend-item"><span class="swatch" style="background:#7a9abf"></span>Rilatine MR 30 mg</div>
+    <div class="legend-item"><span class="swatch" style="background:#8b6caa"></span>Equasym XR 20 mg</div>
   </div>
 </div>
 
@@ -499,6 +502,18 @@
     </div>
   </div>
 
+  <div class="comp-card">
+    <div class="comp-header" style="background:#8b6caa;color:#fff">Equasym XR 20 mg</div>
+    <div class="comp-body">
+      <div class="comp-row"><span class="comp-key">Type</span><span>Modified release (30/70)</span></div>
+      <div class="comp-row"><span class="comp-key">Release</span><span>6 mg now + 14 mg at +4 h</span><span>Food does not significantly affect absorption</span></div>
+      <div class="comp-row"><span class="comp-key">Peak</span><span>~43 min &amp; ~4 h 43 min</span></div>
+      <div class="comp-row"><span class="comp-key">Duration</span><span>~9 h</span></div>
+      <div class="comp-row"><span class="comp-key">Rebound</span><span>8 h 45 min – 11 h 15 min</span></div>
+      <div class="comp-row comp-sleep"><span class="comp-key">Sleep 23:00</span><span>Last dose by <strong>~11:45</strong></span></div>
+    </div>
+  </div>
+
 </div>
 
 <div class="rules-card">
@@ -525,9 +540,10 @@
     <div class="rules-title" style="margin-top:16px">How methylphenidate MR works</div>
     <div class="rules-section">Release profile</div>
     <ul class="rules-list">
-      <li>MR formulations (MK Retard, Rilatine MR) use a <strong>50/50 bimodal release</strong>: half the dose is released immediately, the other half is released in a delayed second pulse.</li>
-      <li>MK Retard releases the second pulse ~3 h 30 min after intake; Rilatine MR releases it ~4 h after intake.</li>
-      <li>The result is two distinct peaks and a much longer total duration (~8.5–9 h) compared to IR (~5 h).</li>
+      <li>MR formulations use a <strong>bimodal release</strong>: part of the dose is released immediately, the rest is released in a delayed second pulse.</li>
+      <li>MK Retard and Rilatine MR use a <strong>50/50 split</strong>: equal first and second peaks. MK Retard delays the second pulse ~3 h 30 min; Rilatine MR ~4 h.</li>
+      <li><strong>Equasym XR uses a 30/70 split</strong> (SODAS technology): only 30% (6 mg of 20 mg) is released immediately, giving a weaker first peak. The remaining 70% (14 mg) is released ~4 h later, producing a stronger second peak. This creates an asymmetric profile — slower start, higher plateau in the afternoon.</li>
+      <li>Total duration is ~8.5–9 h for all MR formulations, compared to ~5 h for IR.</li>
     </ul>
     <div class="rules-section">Rebound</div>
     <ul class="rules-list">
@@ -537,7 +553,7 @@
     </ul>
     <div class="rules-section">Practical considerations</div>
     <ul class="rules-list">
-      <li>The longer duration makes MR formulations less suitable for late-day use — take no later than ~12:00–12:15 if you want to sleep around 23:00.</li>
+      <li>The longer duration makes MR formulations less suitable for late-day use — MK Retard / Rilatine MR: take no later than ~12:00–12:15; Equasym XR 20 mg: no later than ~11:45 if you want to sleep around 23:00.</li>
       <li>You cannot "top up" an MR dose mid-afternoon the same way you can with IR, without significantly delaying the rebound and sleep onset.</li>
     </ul>
 
@@ -546,7 +562,7 @@
       <li><strong>Latest before:</strong> 30 min before the first intake — enough time to absorb before methylphenidate starts. This applies to all formulations, since the first pulse is always immediate release.</li>
       <li><strong>Earliest after (IR 10 / 20 mg):</strong> ~7 h 15 min after the last dose — once the rebound has fully passed.</li>
       <li><strong>Earliest after (MK Retard 30 mg):</strong> ~10 h 45 min after intake — the second pulse delays the rebound by 3 h 30 min.</li>
-      <li><strong>Earliest after (Rilatine MR 30 mg):</strong> ~11 h 15 min after intake — the second pulse delays the rebound by 4 h.</li>
+      <li><strong>Earliest after (Rilatine MR 30 mg / Equasym XR 20 mg):</strong> ~11 h 15 min after intake — both have a 4 h delay for the second pulse, so rebound ends at the same time.</li>
       <li>The dip between pulse 1 and pulse 2 in MR formulations is <strong>not</strong> a safe window — methylphenidate is still active and competing at the same transporter.</li>
       <li>Avoid taking during any active methylphenidate effect: both compete for the same amino acid transporter into the brain (LAT1), reducing L-tyrosine uptake.</li>
     </ul>
@@ -633,13 +649,16 @@ function getOrInitState() {
     s = { date: todayStr(), doses: [], selectedMg: 20, selectedType: 'ir' };
     saveState(s);
   }
-  // Migrate legacy doses without type/delay
-  if (s.doses) s.doses.forEach(d => { if (!d.type) { d.type = 'ir'; d.delay = 0; } });
+  // Migrate legacy doses without type/delay/split
+  if (s.doses) s.doses.forEach(d => {
+    if (!d.type) { d.type = 'ir'; d.delay = 0; }
+    if (isMR(d) && d.split === undefined) { d.split = 0.5; }
+  });
   return s;
 }
-function addDose(time, mg, type = 'ir', delay = 0) {
+function addDose(time, mg, type = 'ir', delay = 0, split = 0.5) {
   const s = getOrInitState();
-  s.doses.push({ id: uid(), time, mg, type, delay });
+  s.doses.push({ id: uid(), time, mg, type, delay, split });
   s.doses.sort((a,b) => a.time - b.time);
   s.selectedMg = mg;
   s.selectedType = type;
@@ -703,9 +722,11 @@ function isMR(dose) { return dose.type && dose.type !== 'ir'; }
 
 function medAt(dose, t) {
   if (isMR(dose)) {
-    const half = (dose.mg / 2) / REFERENCE_MG;
-    return medValue(t - dose.time) * half +
-           medValue(t - dose.time - dose.delay) * half;
+    const split = dose.split !== undefined ? dose.split : 0.5;
+    const firstPart  = dose.mg * split       / REFERENCE_MG;
+    const secondPart = dose.mg * (1 - split) / REFERENCE_MG;
+    return medValue(t - dose.time) * firstPart +
+           medValue(t - dose.time - dose.delay) * secondPart;
   }
   return medValue(t - dose.time) * (dose.mg / REFERENCE_MG);
 }
@@ -725,16 +746,16 @@ function reboundAt(dose, allDoses, t) {
   const externalMed = (tt) => allDoses.reduce((s, d) => d.id !== dose.id ? s + medAt(d, tt) : s, 0);
 
   if (isMR(dose)) {
-    const half = (dose.mg / 2) / REFERENCE_MG;
+    const split = dose.split !== undefined ? dose.split : 0.5;
+    const firstPart  = dose.mg * split       / REFERENCE_MG;
+    const secondPart = dose.mg * (1 - split) / REFERENCE_MG;
     const t2 = dose.time + dose.delay;
-    // Sub-dose 1: suppressed by sub-dose 2 (same pill) + other external doses
     const rb1 = _reboundForSubDose(
-      dose.time, half,
-      (tt) => externalMed(tt) + medValue(tt - t2) * half,
+      dose.time, firstPart,
+      (tt) => externalMed(tt) + medValue(tt - t2) * secondPart,
       allDoses, t
     );
-    // Sub-dose 2: suppressed only by external doses
-    const rb2 = _reboundForSubDose(t2, half, externalMed, allDoses, t);
+    const rb2 = _reboundForSubDose(t2, secondPart, externalMed, allDoses, t);
     return rb1 + rb2;
   }
 
@@ -814,12 +835,14 @@ function doseSwatchClass(d) {
   if (d.mg === 10)          return 'd10';
   if (d.type === 'mk30')    return 'dmk30';
   if (d.type === 'rl30')    return 'drl30';
+  if (d.type === 'eq20')    return 'deq20';
   return '';
 }
 
 function doseLabelShort(d) {
   if (d.type === 'mk30') return 'MK Retard 30 mg';
   if (d.type === 'rl30') return 'Rilatine MR 30 mg';
+  if (d.type === 'eq20') return 'Equasym XR 20 mg';
   return `${d.mg} mg`;
 }
 
@@ -1122,7 +1145,7 @@ function renderChart(state) {
 
   const innames = [];
   doses.forEach((d, i) => {
-    const lbl = isMR(d) ? `${d.type === 'mk30' ? 'MK' : 'RL'}30 [${i+1}]` : `${d.mg}mg [${i+1}]`;
+    const lbl = isMR(d) ? `${d.type === 'mk30' ? 'MK30' : d.type === 'eq20' ? 'EQ20' : 'RL30'} [${i+1}]` : `${d.mg}mg [${i+1}]`;
     const x = d.time - start;
     if (x >= 0 && x <= end - start) innames.push({ x, label: lbl });
     if (isMR(d)) {
@@ -1266,8 +1289,8 @@ function renderChart(state) {
 function getSelected() {
   const active = document.querySelector('#dose-toggle button.active');
   return active
-    ? { mg: Number(active.dataset.mg), type: active.dataset.type || 'ir', delay: Number(active.dataset.delay || 0) }
-    : { mg: 20, type: 'ir', delay: 0 };
+    ? { mg: Number(active.dataset.mg), type: active.dataset.type || 'ir', delay: Number(active.dataset.delay || 0), split: active.dataset.split !== undefined ? Number(active.dataset.split) : 0.5 }
+    : { mg: 20, type: 'ir', delay: 0, split: 0.5 };
 }
 
 document.getElementById('dose-toggle').addEventListener('click', (e) => {
@@ -1280,8 +1303,8 @@ document.getElementById('dose-toggle').addEventListener('click', (e) => {
 
 document.getElementById('take-now-btn').addEventListener('click', () => {
   const now = nowDecimalHours();
-  const { mg, type, delay } = getSelected();
-  addDose(Math.round(now * 60) / 60, mg, type, delay);
+  const { mg, type, delay, split } = getSelected();
+  addDose(Math.round(now * 60) / 60, mg, type, delay, split);
   render();
 });
 
@@ -1289,8 +1312,8 @@ document.getElementById('set-time-btn').addEventListener('click', () => {
   const val = document.getElementById('time-input').value;
   const parsed = parseTimeInput(val);
   if (parsed == null) return;
-  const { mg, type, delay } = getSelected();
-  addDose(parsed, mg, type, delay);
+  const { mg, type, delay, split } = getSelected();
+  addDose(parsed, mg, type, delay, split);
   render();
 });
 
@@ -1320,8 +1343,8 @@ document.getElementById('clear-all-btn').addEventListener('click', () => {
 })();
 
 // ── Comparison chart ─────────────────────────────────────────
-function computeComparisonCurve(mg, type, delay) {
-  const dose = { id: 'cmp_' + type, time: 0, mg, type: type || 'ir', delay: delay || 0 };
+function computeComparisonCurve(mg, type, delay, split = 0.5) {
+  const dose = { id: 'cmp_' + type, time: 0, mg, type: type || 'ir', delay: delay || 0, split };
   const allDoses = [dose];
   const pts = [];
   for (let t = 0; t <= 12.5; t += 0.1) {
@@ -1335,14 +1358,15 @@ function computeComparisonCurve(mg, type, delay) {
 let compChart = null;
 function initComparisonChart() {
   const variants = [
-    { mg: 10, type: 'ir',   delay: 0,   color: '#b8d1bb', label: 'IR 10 mg' },
-    { mg: 20, type: 'ir',   delay: 0,   color: '#4a7a50', label: 'IR 20 mg' },
-    { mg: 30, type: 'mk30', delay: 3.5, color: '#c96a68', label: 'MK Retard 30 mg' },
-    { mg: 30, type: 'rl30', delay: 4,   color: '#7a9abf', label: 'Rilatine MR 30 mg' },
+    { mg: 10, type: 'ir',   delay: 0,   split: 0.5, color: '#b8d1bb', label: 'IR 10 mg' },
+    { mg: 20, type: 'ir',   delay: 0,   split: 0.5, color: '#4a7a50', label: 'IR 20 mg' },
+    { mg: 30, type: 'mk30', delay: 3.5, split: 0.5, color: '#c96a68', label: 'MK Retard 30 mg' },
+    { mg: 30, type: 'rl30', delay: 4,   split: 0.5, color: '#7a9abf', label: 'Rilatine MR 30 mg' },
+    { mg: 20, type: 'eq20', delay: 4,   split: 0.3, color: '#8b6caa', label: 'Equasym XR 20 mg' },
   ];
   const datasets = variants.map(v => ({
     label: v.label,
-    data: computeComparisonCurve(v.mg, v.type, v.delay),
+    data: computeComparisonCurve(v.mg, v.type, v.delay, v.split),
     borderColor: v.color,
     backgroundColor: 'transparent',
     fill: false,
